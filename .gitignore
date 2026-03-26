@@ -1,0 +1,5 @@
+db/*
+!db/.gitkeep.DS_Store
+*.Zone.Identifier
+phpmyadmin/sessions/
+node_modules/
