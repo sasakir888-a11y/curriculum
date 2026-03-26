@@ -1,0 +1,56 @@
+version: '3.8'
+
+services:
+  nginx:
+    container_name: curriculum-nginx
+    image: nginx:latest
+    volumes:
+      - ./docker/nginx:/etc/nginx/conf.d
+      - ./app:/var/www/html
+    ports:
+      - "80:80"
+    depends_on:
+      - php
+
+  php:
+    container_name: curriculum-laravel
+    build:
+      context: ./
+      dockerfile: docker/php/Dockerfile
+    volumes:
+      - ./app:/var/www/html
+      - ./docker/php/check_startup.sh:/tmp/check_startup.sh
+    expose:
+      - "9000"
+    depends_on:
+      - db
+
+  db:
+    container_name: curriculum-db
+    image: mysql:5.7
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      TZ: 'Asia/Tokyo'
+    volumes:
+      - db-data:/var/lib/mysql
+    restart: always
+    ports:
+      - 3306:3306
+
+  phpMyAdmin:
+    image: phpmyadmin/phpmyadmin
+    environment:
+      - PMA_PARBIRARY=1
+      - PMA_HOST=db
+      - PMA_USER=root
+      - PMA_PASSWORD=root
+    links:
+      - db
+    ports:
+      - 4040:80
+    volumes:
+      - ./phpmyadmin/sessions:/sessions
+
+# ⭐⭐⭐ ここが最重要（左端）
+volumes:
+  db-data:
