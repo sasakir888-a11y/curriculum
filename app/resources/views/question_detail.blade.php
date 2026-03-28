@@ -6,8 +6,14 @@
     $canPost = auth()->check() && auth()->user()->role == 0;
 @endphp
 
+
 <div class="container">
-<div class="container">
+    {{-- 成功メッセージ --}}
+@if(session('question_success'))
+    <div class="alert alert-success">
+        {{ session('question_success') }}
+    </div>
+@endif
 
     <!-- 質問 -->
     <div class="card mb-4">
@@ -149,12 +155,18 @@
 @if($canPost)
 <h4>回答する</h4>
 
-{{-- 成功メッセージ --}}
-@if (session('success'))
+@if(session('answer_success'))
     <div class="alert alert-success">
-        {{ session('success') }}
+        {{ session('answer_success') }}
     </div>
 @endif
+@error('content')
+    <div class="alert alert-danger">
+        {{ $message }}
+    </div>
+@enderror
+
+
 
 {{-- エラー表示 --}}
 @if ($errors->answer->any())
@@ -316,6 +328,9 @@
 
             <!-- ⭐ コメント（回答ごと） -->
             <h6 class="mt-3">コメント</h6>
+            @error('content')
+    <div class="text-danger">{{ $message }}</div>
+@enderror
 
             @foreach ($answer->comments as $comment)
                 <div class="border p-2 mb-2">

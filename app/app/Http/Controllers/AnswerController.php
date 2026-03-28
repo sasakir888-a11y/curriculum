@@ -28,7 +28,7 @@ class AnswerController extends Controller
         'is_visible'  => 1
     ]);
 
-    return back()->with('success', '回答を投稿しました');
+    return back()->with('answer_success', '回答を投稿しました');
 }
 
     // 編集画面
@@ -48,15 +48,24 @@ class AnswerController extends Controller
 {
     $answer = Answer::findOrFail($id);
 
+    // 本人のみ編集可
     if ($answer->user_id != Auth::id()) {
         abort(403);
     }
 
+    // 本文更新
     $answer->content = $request->content;
+
+    // :star: 画像が選択された時だけ更新
+    if ($request->hasFile('image')) {
+        $path = $request->file('image')->store('answers', 'public');
+        $answer->image_path = $path;
+    }
+
     $answer->save();
 
     return redirect('/question/' . $answer->question_id)
-           ->with('success', '回答を更新しました');
+           ->with('answer_success', '回答を更新しました');
 }
 
     // 削除

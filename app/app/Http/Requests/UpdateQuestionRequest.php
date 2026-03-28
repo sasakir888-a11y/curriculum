@@ -16,7 +16,7 @@ class UpdateQuestionRequest extends FormRequest
         return [
             'title'   => 'required|string|max:255',
             'content' => 'required|string|min:10',
-            'image'   => 'required|image|mimes:jpg,jpeg,png|max:2048',
+            'image'   => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
         ];
     }
 

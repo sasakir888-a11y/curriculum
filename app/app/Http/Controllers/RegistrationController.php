@@ -50,17 +50,24 @@ class RegistrationController extends Controller
 {
     $question = Question::findOrFail($id);
 
-    // ⭐ 本人のみ
+    // 本人のみ
     if ($question->user_id != Auth::id()) {
         abort(403);
     }
 
     $question->title   = $request->title;
     $question->content = $request->content;
+
+    // :star: 画像が選択された時だけ更新
+    if ($request->hasFile('image')) {
+        $path = $request->file('image')->store('questions', 'public');
+        $question->image_path = $path;
+    }
+
     $question->save();
 
     return redirect('/question/' . $id)
-           ->with('success', '質問を更新しました');
+       ->with('question_success', '質問を更新しました');
 }
 
     // 削除

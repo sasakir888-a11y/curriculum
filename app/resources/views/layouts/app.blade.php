@@ -40,7 +40,15 @@
 <div id="app">
     <nav class="navbar navbar-expand-md navbar-light bg-white shadow-sm">
     <div class="container">
-        <a class="navbar-brand" href="{{ url('/') }}">Q&A掲示板</a>
+        @php
+    $homeUrl = (auth()->check() && auth()->user()->role === 1)
+        ? url('/admin')
+        : url('/');
+@endphp
+
+<a class="navbar-brand" href="{{ $homeUrl }}">
+    Q&A掲示板
+</a>
 
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse"
                 data-bs-target="#navbarSupportedContent">
