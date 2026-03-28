@@ -1,6 +1,12 @@
 @extends('layouts.app')
 
 @section('content')
+
+@php
+    $canPost = auth()->check() && auth()->user()->role == 0;
+@endphp
+
+<div class="container">
 <div class="container">
 
     <!-- 質問 -->
@@ -37,27 +43,25 @@
 
 
             {{-- ⭐ ここが重要：card-bodyの中 --}}
-            @if(Auth::user()->role != 1)
-            <div class="d-flex justify-content-end align-items-center gap-2 mt-3">
+            @if($canPost)
+<div class="d-flex justify-content-end align-items-center gap-2 mt-3">
 
-                {{-- ブックマーク --}}
-                @auth
-                <button class="bookmark-btn border-0 bg-transparent p-0"
-                        data-id="{{ $question->id }}">
-                    <i class="bi {{ $isBookmarked ? 'bi-bookmark-fill text-warning' : 'bi-bookmark text-secondary' }}"
-                    style="font-size: 1.4rem;"></i>
-                </button>
-                @endauth
+    {{-- ブックマーク --}}
+    <button class="bookmark-btn border-0 bg-transparent p-0"
+            data-id="{{ $question->id }}">
+        <i class="bi {{ $isBookmarked ? 'bi-bookmark-fill text-warning' : 'bi-bookmark text-secondary' }}"
+           style="font-size: 1.4rem;"></i>
+    </button>
 
-                @auth
-                @if(Auth::id() !== $question->user_id)
-                <button class="btn btn-sm btn-outline-danger"
-                        data-bs-toggle="modal"
-                        data-bs-target="#reportQuestionModal">
-                    違反報告
-                </button>
-                @endif
-                @endauth
+    {{-- 違反報告 --}}
+    @if(Auth::id() !== $question->user_id)
+        <button class="btn btn-sm btn-outline-danger"
+                data-bs-toggle="modal"
+                data-bs-target="#reportQuestionModal">
+            違反報告
+        </button>
+    @endif
+               
 
                 <div class="modal fade"
                     id="reportQuestionModal"
@@ -116,24 +120,23 @@
                 </div>
 
 
-                {{-- 自分の投稿のみ --}}
-                @if(Auth::id() == $question->user_id)
+                {{-- 自分の投稿 --}}
+    @if(Auth::id() == $question->user_id)
+        <a href="/question/edit/{{ $question->id }}"
+           class="btn btn-warning btn-sm">
+            編集
+        </a>
 
-                    <a href="/question/edit/{{ $question->id }}"
-                    class="btn btn-warning btn-sm">
-                    編集
-                    </a>
+        <form method="POST"
+              action="/question/delete/{{ $question->id }}"
+              class="m-0">
+            @csrf
+            <button type="submit" class="btn btn-danger btn-sm">
+                削除
+            </button>
+        </form>
+    @endif
 
-                    <form method="POST"
-                        action="/question/delete/{{ $question->id }}"
-                        class="d-flex m-0">
-                        @csrf
-                        <button class="btn btn-danger btn-sm">
-                            削除
-                        </button>
-                    </form>
-
-                @endif
 
             </div>
             @endif
@@ -143,7 +146,7 @@
     <hr>
 
     <!-- ⭐ 回答投稿フォーム -->
-@if(Auth::user()->role != 1)
+@if($canPost)
 <h4>回答する</h4>
 
 {{-- 成功メッセージ --}}
@@ -227,34 +230,35 @@
                     style="max-width: 400px;">
             @endif
 
-            @if(Auth::user()->role != 1)
-            {{-- 編集・削除 --}}
-            @auth
-            @if(Auth::id() !== $answer->user_id)
-            <button class="btn btn-sm btn-outline-danger mt-2"
-                    data-bs-toggle="modal"
-                    data-bs-target="#reportAnswerModal{{ $answer->id }}">
-                違反報告
-            </button>
-            @endif
-            @endauth
-            @auth
-            @if(Auth::id() == $answer->user_id)
+           @if($canPost)
 
-                <div class="mt-2">
-                    <a href="/answer/edit/{{ $answer->id }}"
-                    class="btn btn-warning btn-sm">編集</a>
+    @if(Auth::id() !== $answer->user_id)
+        <button class="btn btn-sm btn-outline-danger mt-2"
+                data-bs-toggle="modal"
+                data-bs-target="#reportAnswerModal{{ $answer->id }}">
+            違反報告
+        </button>
+    @endif
 
-                    <form method="POST"
-                        action="/answer/delete/{{ $answer->id }}"
-                        style="display:inline;">
-                        @csrf
-                        <button class="btn btn-danger btn-sm">削除</button>
-                    </form>
-                </div>
+    @if(Auth::id() == $answer->user_id)
+        <div class="mt-2">
+            <a href="/answer/edit/{{ $answer->id }}"
+               class="btn btn-warning btn-sm">
+                編集
+            </a>
 
-            @endif
-            @endauth
+            <form method="POST"
+                  action="/answer/delete/{{ $answer->id }}"
+                  style="display:inline;">
+                @csrf
+                <button class="btn btn-danger btn-sm">
+                    削除
+                </button>
+            </form>
+        </div>
+    @endif
+
+@endif
 
             <div class="modal fade"
                 id="reportAnswerModal{{ $answer->id }}"
@@ -309,7 +313,6 @@
                 </div>
             </div>
             </div>
-            @endif
 
             <!-- ⭐ コメント（回答ごと） -->
             <h6 class="mt-3">コメント</h6>
@@ -332,28 +335,25 @@
 
 
             <!-- ⭐ コメント投稿フォーム -->
-            @if(Auth::user()->role != 1)
+            @if($canPost)
+<h6 class="mt-2">コメントする</h6>
 
-                <h6 class="mt-2">コメントする</h6>
+<form method="POST" action="/comment/{{ $answer->id }}">
+    @csrf
 
-                <form method="POST" action="/comment/{{ $answer->id }}" novalidate>
-                    @csrf
+    <textarea name="comment_content"
+              class="form-control mb-1"
+              rows="2">{{ old('comment_content') }}</textarea>
 
-                    <textarea name="comment_content"
-                            class="form-control mb-1"
-                            rows="2">{{ old('comment_content') }}</textarea>
+    @error('comment_content')
+        <div class="text-danger small">{{ $message }}</div>
+    @enderror
 
-                    @error('comment_content')
-                        <div class="text-danger small">{{ $message }}</div>
-                    @enderror
-
-                    <button class="btn btn-sm btn-primary mt-1">
-                        投稿
-                    </button>
-
-                </form>
-
-            @endif
+    <button class="btn btn-sm btn-primary mt-1">
+        投稿
+    </button>
+</form>
+@endif
 
         </div>
     </div>
