@@ -26,6 +26,9 @@ Route::post('/question/store', [RegistrationController::class, 'store']);
 // ⭐ 詳細
 Route::get('/question/{id}', [DisplayController::class, 'show']);
 
+// 👑【追加】ベストアンサーを選択するルート（他の一覧と書き方を統一）
+Route::post('/question/{id}/best-answer/{answer_id}', [DisplayController::class, 'selectBestAnswer'])->middleware('auth');
+
 // ⭐ 回答投稿
 Route::post('/answer/{question_id}', [AnswerController::class, 'store']);
 

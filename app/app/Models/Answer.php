@@ -11,7 +11,8 @@ class Answer extends Model
         'user_id',
         'content',
         'image_path',
-        'is_visible'
+        'is_visible',
+        'is_best_answer' // 追加：プログラムから更新可能にする
     ];
 
     public function user()

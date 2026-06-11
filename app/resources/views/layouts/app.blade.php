@@ -15,6 +15,10 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
 
     <style>
+        html {
+            scroll-behavior: smooth;
+        }
+        
         /* ドロップダウンの余白ゼロ化 */
         .navbar-nav .dropdown-menu {
             margin-top: 0 !important;  /* 上の余白を削除 */
@@ -33,12 +37,22 @@
             display: flex;
             align-items: center;
         }
+
+        /* ★【修正】ヘッダーに被らないよう、余白を60pxから90pxに調整しました */
+        body {
+            padding-top: 90px;
+        }
+
+        /* ★ヘッダーの背景色を知的ネイビーに固定 */
+        .custom-navbar {
+            background-color: #1e293b !important;
+        }
     </style>
 </head>
 
 <body>
 <div id="app">
-    <nav class="navbar navbar-expand-md navbar-light bg-white shadow-sm">
+    <nav class="navbar navbar-expand-md navbar-dark custom-navbar shadow-sm fixed-top">
     <div class="container">
         @php
     $homeUrl = (auth()->check() && auth()->user()->role === 1)
@@ -46,7 +60,8 @@
         : url('/');
 @endphp
 
-<a class="navbar-brand" href="{{ $homeUrl }}">
+{{-- ★【修正】JavaScriptで検知できるように id="brand-logo" を書き足しました --}}
+<a class="navbar-brand text-white" href="{{ $homeUrl }}" id="brand-logo">
     Q&A掲示板
 </a>
 
@@ -64,12 +79,12 @@
 
                 @auth
                     @if(Auth::user()->role != 1)
-                        <li class="nav-item"><a class="nav-link" href="{{ url('/') }}">質問一覧</a></li>
-                        <li class="nav-item"><a class="nav-link" href="{{ url('/question/create') }}">質問投稿</a></li>
-                        <li class="nav-item"><a class="nav-link" href="{{ url('/mypage') }}">マイページ</a></li>
+                        <li class="nav-item"><a class="nav-link text-white" href="{{ url('/') }}">質問一覧</a></li>
+                        <li class="nav-item"><a class="nav-link text-white" href="{{ url('/question/create') }}">質問投稿</a></li>
+                        <li class="nav-item"><a class="nav-link text-white" href="{{ url('/mypage') }}">マイページ</a></li>
                     @endif
                     @if(Auth::user()->role === 1)
-                        <li class="nav-item"><a class="nav-link" href="{{ url('/admin') }}">管理画面</a></li>
+                        <li class="nav-item"><a class="nav-link text-white" href="{{ url('/admin') }}">管理画面</a></li>
                     @endif
 
                     {{-- アイコン＋名前＋ログアウト横並び --}}
@@ -85,7 +100,7 @@
                         @endif
 
                         {{-- 名前 --}}
-                        <span class="me-3">{{ Auth::user()->name }}</span>
+                        <span class="me-3 text-white">{{ Auth::user()->name }}</span>
 
                         {{-- ログアウトボタン --}}
                         <form action="{{ route('logout') }}" method="POST" class="m-0">
@@ -99,9 +114,9 @@
                 @endauth
 
                 @guest
-                    <li class="nav-item"><a class="nav-link" href="{{ route('login') }}">ログイン</a></li>
+                    <li class="nav-item"><a class="nav-link text-white" href="{{ route('login') }}">ログイン</a></li>
                     @if(Route::has('register'))
-                        <li class="nav-item"><a class="nav-link" href="{{ route('register') }}">新規登録</a></li>
+                        <li class="nav-item"><a class="nav-link text-white" href="{{ route('register') }}">新規登録</a></li>
                     @endif
                 @endguest
 
@@ -131,5 +146,28 @@
         </div>
     </div>
 </div>
+
+{{-- ★【追加】ロゴクリック時にページ位置を判定して賢くスクロール/移動するスクリプト --}}
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const logo = document.getElementById('brand-logo');
+    if (logo) {
+        logo.addEventListener('click', function(e) {
+            const currentPath = window.location.pathname;
+
+            // 💡 現在すでに「ホーム」画面にいるときだけ、リロードせずにするする上に戻す
+            if (currentPath === '/' || currentPath === '/home') {
+                e.preventDefault(); // 本来の画面遷移をストップ
+                window.scrollTo({
+                    top: 0,
+                    behavior: 'smooth' // スルスルと滑らかに戻る
+                });
+            }
+            // ※マイページなど他の画面にいるときは、自動的に本来の href（ホーム）へジャンプします
+        });
+    }
+});
+</script>
+
 </body>
 </html>
